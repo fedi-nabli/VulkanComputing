@@ -62,6 +62,8 @@
     "*.in": "cpp",
     "*.asm": "asm-intel-x86-generic",
     "*.S": "arm",
-    "vulkan.h": "c"
+    "vulkan.h": "c",
+    "vulkan.hpp": "c",
+    "vulkan_macos.h": "c"
   }
 }

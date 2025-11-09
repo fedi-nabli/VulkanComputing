@@ -2,5 +2,6 @@
 #define __COMPUTE_H_
 
 int Compute();
+void PrepareCommandBuffer();
 
 #endif

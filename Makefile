@@ -3,7 +3,7 @@ SOURCES = compute.c device.c instance.c main.c
 
 TARGET = bin/vulkan_compute
 
-VULKAN_LIB_PATH ?= $(VULKAN_SDK)/macos/lib
+VULKAN_LIB_PATH ?= $(VULKAN_SDK)/lib
 LD_FLAGS = -lvulkan -L$(VULKAN_LIB_PATH) -Wl,-rpath,$(VULKAN_LIB_PATH)
 
 all: $(TARGET)
@@ -19,3 +19,4 @@ run: $(TARGET)
 
 clean:
 	rm -rf $(TARGET)
+	rm -rf ./bin

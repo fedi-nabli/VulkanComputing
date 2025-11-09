@@ -2,6 +2,64 @@
   "version": "0.2.0",
   "configurations": [
     {
+      "name": "Debug Vulkan Compute",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${workspaceRoot}/bin/vulkan_compute",
+      "args": [],
+      "stopAtEntry": false,
+      "cwd": "${workspaceFolder}",
+      "environment": [
+        {
+          "name": "VULKAN_SDK",
+          "value": "/Users/fedinabli/VulkanSDK/1.4.313.1/macOS"
+        },
+        {
+          "name": "VK_ICD_FILENAMES",
+          "value": "/Users/fedinabli/VulkanSDK/1.4.313.1/macOS/share/vulkan/icd.d/MoltenVK_icd.json"
+        },
+        {
+          "name": "VK_LAYER_PATH",
+          "value": "/Users/fedinabli/VulkanSDK/1.4.313.1/macOS/share/vulkan/explicit_layer.d"
+        }
+      ],
+      "externalConsole": false,
+      "MIMode": "lldb",
+      "preLaunchTask": "rebuild",
+      "setupCommands": [
+        { 
+          "description": "Enable pretty-printing for lldb",
+          "text": "settings set target.process.follow-fork-mode child",
+          "ignoreFailures": true
+        }
+      ]
+    },
+    {
+      "name": "Debug Vulkan Compute (no build)",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/bin/vulkan_compute",
+      "args": [],
+      "stopAtEntry": false,
+      "cwd": "${workspaceFolder}",
+      "environment": [
+        {
+          "name": "VULKAN_SDK",
+          "value": "/Users/fedinabli/VulkanSDK/1.4.313.1/macOS"
+        },
+        {
+          "name": "VK_ICD_FILENAMES",
+          "value": "/Users/fedinabli/VulkanSDK/1.4.313.1/macOS/share/vulkan/icd.d/MoltenVK_icd.json"
+        },
+        {
+          "name": "VK_LAYER_PATH",
+          "value": "/Users/fedinabli/VulkanSDK/1.4.313.1/macOS/share/vulkan/explicit_layer.d"
+        }
+      ],
+      "externalConsole": false,
+      "MIMode": "lldb"
+    },
+    {
       "name": "C/C++ Runner: Debug Session",
       "type": "lldb",
       "request": "launch",

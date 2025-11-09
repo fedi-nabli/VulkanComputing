@@ -1,0 +1,57 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "build",
+      "type": "shell",
+      "command": "make",
+      "args": [],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      },
+      "problemMatcher": [
+        "$gcc"
+      ],
+      "options": {
+        "env": {
+          "VULKAN_SDK": "/Users/fedinabli/VulkanSDK/1.4.313.1/macOS"
+        }
+      }
+    },
+    {
+      "label": "clean",
+      "type": "shell",
+      "command": "make",
+      "args": [
+        "clean"
+      ],
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      }
+    },
+    {
+      "label": "rebuild",
+      "dependsOn": [
+        "clean",
+        "build"
+      ],
+      "dependsOrder": "sequence",
+      "group": "build",
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      },
+      "options": {
+        "env": {
+          "VULKAN_SDK": "/Users/fedinabli/VulkanSDK/1.4.313.1/macOS"
+        }
+      }
+    }
+  ]
+}

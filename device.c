@@ -1,5 +1,6 @@
 #include "device.h"
 
+#include "memory.h"
 #include "instance.h"
 
 #include <stdio.h>
@@ -37,6 +38,10 @@ void CreateDeviceAndComputeQueue()
 
   float prio = 1.0f;
 
+  const char* deviceExtensions[] = {
+    "VK_KHR_portability_subset"
+  };
+
   VkDeviceQueueCreateInfo queueCreateInfo;
   memset(&queueCreateInfo, 0, sizeof(queueCreateInfo));
   queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
@@ -49,6 +54,8 @@ void CreateDeviceAndComputeQueue()
   deviceCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
   deviceCreateInfo.pQueueCreateInfos = &queueCreateInfo;
   deviceCreateInfo.queueCreateInfoCount = 1;
+  deviceCreateInfo.enabledExtensionCount = 1;
+  deviceCreateInfo.ppEnabledExtensionNames = deviceExtensions;
 
   if (vkCreateDevice(PhysicalDevice, &deviceCreateInfo, NULL, &LogicalDevice) != VK_SUCCESS)
   {
@@ -104,6 +111,8 @@ void DestroyCommandPoolAndLogicalDevice()
   {
     vkDestroyDescriptorPool(LogicalDevice, DescriptorPool, NULL);
   }
+
+  DestroyBuffers();
 
   if (LogicalDevice != VK_NULL_HANDLE)
   {

@@ -58,7 +58,7 @@ void CreateDescriptorSetLayout()
   VkDescriptorSetLayoutCreateInfo createInfo;
   memset(&createInfo, 0, sizeof(createInfo));
   createInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-  createInfo.bindingCount = 1;
+  createInfo.bindingCount = 2;
   createInfo.pBindings = bindings;
 
   if (vkCreateDescriptorSetLayout(LogicalDevice, &createInfo, NULL, &DescriptorSetLayout) != VK_SUCCESS)

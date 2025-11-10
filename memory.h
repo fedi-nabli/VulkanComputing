@@ -3,6 +3,7 @@
 
 #include <unistd.h>
 
+void DestroyBuffers();
 void CreateBuffer(uint32_t inputSize, uint32_t outputSize);
 
 #endif

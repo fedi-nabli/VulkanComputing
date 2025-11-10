@@ -82,4 +82,31 @@ void CreateBuffer(uint32_t inputSize, uint32_t outputSize)
 {
   InputBuffer = CreateBufferAndMemory(inputSize, &InputBufferMemory);
   OutputBuffer = CreateBufferAndMemory(outputSize, &OutputBufferMemory);
+
+  VkDescriptorBufferInfo descriptorBuffers[2];
+  descriptorBuffers[0].buffer = InputBuffer;
+  descriptorBuffers[0].offset = 0;
+  descriptorBuffers[0].range = inputSize;
+  descriptorBuffers[1].buffer = OutputBuffer;
+  descriptorBuffers[1].offset = 0;
+  descriptorBuffers[1].range = outputSize;
+
+  VkWriteDescriptorSet writeDescriptorSet;
+  memset(&writeDescriptorSet, 0, sizeof(writeDescriptorSet));
+  writeDescriptorSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+  writeDescriptorSet.dstSet = DescriptorSet;
+  writeDescriptorSet.dstBinding = 0;
+  writeDescriptorSet.descriptorCount = 2;
+  writeDescriptorSet.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+  writeDescriptorSet.pBufferInfo = descriptorBuffers;
+
+  vkUpdateDescriptorSets(LogicalDevice, 1, &writeDescriptorSet, 0, NULL);
+}
+
+void DestroyBuffers()
+{
+  vkDestroyBuffer(LogicalDevice, InputBuffer, NULL);
+  vkFreeMemory(LogicalDevice, InputBufferMemory, NULL);
+  vkDestroyBuffer(LogicalDevice, OutputBuffer, NULL);
+  vkFreeMemory(LogicalDevice, OutputBufferMemory, NULL);
 }

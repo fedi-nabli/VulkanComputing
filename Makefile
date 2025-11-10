@@ -1,5 +1,5 @@
-HEADERS = compute.h device.h instance.h pipeline.h
-SOURCES = compute.c device.c instance.c pipeline.c main.c
+HEADERS = compute.h device.h instance.h pipeline.h memory.h
+SOURCES = compute.c device.c instance.c pipeline.c memory.c main.c
 
 TARGET = bin/vulkan_compute
 

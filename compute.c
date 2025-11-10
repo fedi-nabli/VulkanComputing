@@ -1,6 +1,7 @@
 #include "compute.h"
 
 #include "device.h"
+#include "pipeline.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -34,6 +35,7 @@ void PrepareCommandBuffer()
     return;
   }
 
+  vkCmdBindPipeline(CommandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, Pipeline);
   vkCmdDispatch(CommandBuffer, 1, 1, 1);
 
   if (vkEndCommandBuffer(CommandBuffer) != VK_SUCCESS)
@@ -45,17 +47,33 @@ void PrepareCommandBuffer()
 
 int Compute()
 {
+  VkFence fence;
+  VkFenceCreateInfo fenceCreateInfo;
+  memset(&fenceCreateInfo, 0, sizeof(fenceCreateInfo));
+  fenceCreateInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+  if (vkCreateFence(LogicalDevice, &fenceCreateInfo, NULL, &fence) != VK_SUCCESS)
+  {
+    printf("Failed to create a fence\n");
+  }
+
  VkSubmitInfo submitInfo;
  memset(&submitInfo, 0, sizeof(submitInfo));
  submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
  submitInfo.commandBufferCount = 1;
  submitInfo.pCommandBuffers = &CommandBuffer;
 
-  if (vkQueueSubmit(ComputingQueue, 1, &submitInfo, NULL) != VK_SUCCESS)
+  if (vkQueueSubmit(ComputingQueue, 1, &submitInfo, fence) != VK_SUCCESS)
   {
     printf("Submitting to command buffer failed!\n");
     return -1;
   }
+
+  if (vkWaitForFences(LogicalDevice, 1, &fence, VK_TRUE, 1000000000) != VK_SUCCESS)
+  {
+    printf("Failed to wait for the fence\n");
+  }
+
+  vkDestroyFence(LogicalDevice, fence, NULL);
 
   return 0;
 }

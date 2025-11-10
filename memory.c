@@ -111,32 +111,39 @@ void DestroyBuffers()
   vkFreeMemory(LogicalDevice, OutputBufferMemory, NULL);
 }
 
-void CopyToInputBuffer(void* data, uint32_t size)
+void CopyData(void* data, uint32_t size, int isWrite, VkDeviceMemory memory)
 {
   void* address;
 
-  if (vkMapMemory(LogicalDevice, InputBufferMemory, 0, size, 0, &address) != VK_SUCCESS)
+  if (vkMapMemory(LogicalDevice, memory, 0, size, 0, &address) != VK_SUCCESS)
   {
-    printf("Failed to map input buffer memory\n");
+    printf("Failed to map buffer memory\n");
     return;
   }
 
-  memcpy(address, data, size);
+  if (isWrite)
+  {
+    memcpy(address, data, size);
+  }
+  else
+  {
+    memcpy(data, address, size);
+  }
 
-  vkUnmapMemory(LogicalDevice, InputBufferMemory);
+  vkUnmapMemory(LogicalDevice, memory);
+}
+
+void CopyToInputBuffer(void* data, uint32_t size)
+{
+  CopyData(data, size, 1, InputBufferMemory);
 }
 
 void CopyFromOutputBuffer(void* data, uint32_t size)
 {
-  void* address;
+  CopyData(data, size, 0, OutputBufferMemory);
+}
 
-  if (vkMapMemory(LogicalDevice, OutputBufferMemory, 0, size, 0, &address) != VK_SUCCESS)
-  {
-    printf("Failed to map input buffer memory\n");
-    return;
-  }
-
-  memcpy(data, address, size);
-
-  vkUnmapMemory(LogicalDevice, OutputBufferMemory);
+void CopyToOutputBuffer(void* data, uint32_t size)
+{
+  CopyData(data, size, 1, OutputBufferMemory);
 }

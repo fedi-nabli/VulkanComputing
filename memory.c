@@ -10,8 +10,12 @@
 
 VkBuffer InputBuffer = VK_NULL_HANDLE;
 VkBuffer OutputBuffer = VK_NULL_HANDLE;
+VkBuffer InputBufferUni1 = VK_NULL_HANDLE;
+VkBuffer InputBufferUni2 = VK_NULL_HANDLE;
 VkDeviceMemory InputBufferMemory = VK_NULL_HANDLE;
 VkDeviceMemory OutputBufferMemory = VK_NULL_HANDLE;
+VkDeviceMemory InputBufferUni1Memory = VK_NULL_HANDLE;
+VkDeviceMemory InputBufferUni2Memory = VK_NULL_HANDLE;
 
 uint32_t FindMemoryIndexByType(uint32_t allowedTypesMask, VkMemoryPropertyFlags flags)
 {
@@ -78,10 +82,13 @@ VkBuffer CreateBufferAndMemory(uint32_t size, VkDeviceMemory* deviceMemory, VkBu
   return buffer;
 }
 
-void CreateBuffer(uint32_t inputSize, uint32_t outputSize)
+void CreateBuffer(uint32_t inputSize, uint32_t outputSize, uint32_t inputSizeUni1, uint32_t inputSizeUni2)
 {
   InputBuffer = CreateBufferAndMemory(inputSize, &InputBufferMemory, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
   OutputBuffer = CreateBufferAndMemory(outputSize, &OutputBufferMemory, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_COHERENT_BIT | VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
+
+  InputBufferUni1 = CreateBufferAndMemory(inputSizeUni1, &InputBufferUni1Memory, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+  InputBufferUni2 = CreateBufferAndMemory(inputSizeUni2, &InputBufferUni2Memory, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
   VkDescriptorBufferInfo descriptorBuffers[2];
   descriptorBuffers[0].buffer = InputBuffer;
@@ -91,16 +98,31 @@ void CreateBuffer(uint32_t inputSize, uint32_t outputSize)
   descriptorBuffers[1].offset = 0;
   descriptorBuffers[1].range = outputSize;
 
-  VkWriteDescriptorSet writeDescriptorSet;
-  memset(&writeDescriptorSet, 0, sizeof(writeDescriptorSet));
-  writeDescriptorSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-  writeDescriptorSet.dstSet = DescriptorSet;
-  writeDescriptorSet.dstBinding = 0;
-  writeDescriptorSet.descriptorCount = 2;
-  writeDescriptorSet.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-  writeDescriptorSet.pBufferInfo = descriptorBuffers;
+  VkDescriptorBufferInfo descriptorBuffersUni[2];
+  descriptorBuffersUni[0].buffer = InputBufferUni1;
+  descriptorBuffersUni[0].offset = 0;
+  descriptorBuffersUni[0].range = inputSizeUni1;
+  descriptorBuffersUni[1].buffer = InputBufferUni2;
+  descriptorBuffersUni[1].offset = 0;
+  descriptorBuffersUni[1].range = inputSizeUni2;
 
-  vkUpdateDescriptorSets(LogicalDevice, 1, &writeDescriptorSet, 0, NULL);
+  VkWriteDescriptorSet writeDescriptorSet[2];
+  memset(&writeDescriptorSet, 0, sizeof(writeDescriptorSet));
+  writeDescriptorSet[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+  writeDescriptorSet[0].dstSet = DescriptorSet;
+  writeDescriptorSet[0].dstBinding = 0;
+  writeDescriptorSet[0].descriptorCount = 2;
+  writeDescriptorSet[0].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+  writeDescriptorSet[0].pBufferInfo = descriptorBuffers;
+
+  writeDescriptorSet[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+  writeDescriptorSet[1].dstSet = DescriptorSet;
+  writeDescriptorSet[1].dstBinding = 2;
+  writeDescriptorSet[1].descriptorCount = 2;
+  writeDescriptorSet[1].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+  writeDescriptorSet[1].pBufferInfo = descriptorBuffersUni;
+
+  vkUpdateDescriptorSets(LogicalDevice, 2, writeDescriptorSet, 0, NULL);
 }
 
 void DestroyBuffers()
@@ -109,6 +131,11 @@ void DestroyBuffers()
   vkFreeMemory(LogicalDevice, InputBufferMemory, NULL);
   vkDestroyBuffer(LogicalDevice, OutputBuffer, NULL);
   vkFreeMemory(LogicalDevice, OutputBufferMemory, NULL);
+  
+  vkDestroyBuffer(LogicalDevice, InputBufferUni1, NULL);
+  vkFreeMemory(LogicalDevice, InputBufferUni1Memory, NULL);
+  vkDestroyBuffer(LogicalDevice, InputBufferUni2, NULL);
+  vkFreeMemory(LogicalDevice, InputBufferUni2Memory, NULL);
 }
 
 void CopyData(void* data, uint32_t size, int isWrite, VkDeviceMemory memory)
@@ -197,4 +224,14 @@ void CopyFromOutputBuffer(void* data, uint32_t size)
 void CopyToOutputBuffer(void* data, uint32_t size)
 {
   CopyData(data, size, 1, OutputBufferMemory);
+}
+
+void CopyToInputBufferUni1(void* data, uint32_t size)
+{
+  CopyToLocalBuffer(data, size, InputBufferUni1);
+}
+
+void CopyToInputBufferUni2(void* data, uint32_t size)
+{
+  CopyToLocalBuffer(data, size, InputBufferUni2);
 }

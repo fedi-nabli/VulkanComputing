@@ -7,6 +7,8 @@ void DestroyBuffers();
 void CopyToInputBuffer(void* data, uint32_t size);
 void CopyToOutputBuffer(void* data, uint32_t size);
 void CopyFromOutputBuffer(void* data, uint32_t size);
-void CreateBuffer(uint32_t inputSize, uint32_t outputSize);
+void CopyToInputBufferUni1(void* data, uint32_t size);
+void CopyToInputBufferUni2(void* data, uint32_t size);
+void CreateBuffer(uint32_t inputSize, uint32_t outputSize, uint32_t inputSizeUni1, uint32_t inputSizeUni2);
 
 #endif

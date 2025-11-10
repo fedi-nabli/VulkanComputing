@@ -12,6 +12,16 @@ layout( binding = 1 ) buffer outputBuffer
   uint valuesOut[1];
 };
 
+layout( binding = 2 ) uniform inputBuffer1
+{
+  uvec4 valuesIn1[2500];
+};
+
+layout( binding = 3 ) uniform inputBuffer2
+{
+  uvec4 valuesIn2[2500];
+};
+
 void main()
 {
   vec4 maxValue = vec4(0, 0, 0, 0);
@@ -19,7 +29,7 @@ void main()
   for (uint j = 0; j < 2500; j++)
   {
     uint index = gl_LocalInvocationID.x + gl_WorkGroupID.x * 500;
-    mat4 value = outerProduct(valuesIn[0][index], valuesIn[1][j]);
+    mat4 value = outerProduct(valuesIn1[index], valuesIn2[j]);
     maxValue = max(maxValue, value[0]);
     maxValue = max(maxValue, value[1]);
     maxValue = max(maxValue, value[2]);

@@ -82,17 +82,19 @@ void CreateCommandPool()
 
 void CreateDescriptorPool()
 {
-  VkDescriptorPoolSize descriptorPoolSize;
+  VkDescriptorPoolSize descriptorPoolSize[2];
   memset(&descriptorPoolSize, 0, sizeof(descriptorPoolSize));
-  descriptorPoolSize.type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-  descriptorPoolSize.descriptorCount = 2;
+  descriptorPoolSize[0].type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+  descriptorPoolSize[0].descriptorCount = 2;
+  descriptorPoolSize[1].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+  descriptorPoolSize[1].descriptorCount = 2;
 
   VkDescriptorPoolCreateInfo descriptorPoolCreateInfo;
   memset(&descriptorPoolCreateInfo, 0, sizeof(descriptorPoolCreateInfo));
   descriptorPoolCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
   descriptorPoolCreateInfo.maxSets = 1;
-  descriptorPoolCreateInfo.poolSizeCount = 1;
-  descriptorPoolCreateInfo.pPoolSizes = &descriptorPoolSize;
+  descriptorPoolCreateInfo.poolSizeCount = 2;
+  descriptorPoolCreateInfo.pPoolSizes = descriptorPoolSize;
 
   if (vkCreateDescriptorPool(LogicalDevice, &descriptorPoolCreateInfo, NULL, &DescriptorPool) != VK_SUCCESS)
   {

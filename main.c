@@ -44,7 +44,7 @@ int main(int argc, const char** argv)
   CreateDeviceAndComputeQueue();
   CreatePipeline();
   CreateDescriptorSet();
-  CreateBuffer(sizeof(InputData), sizeof(OutputData));
+  CreateBuffer(sizeof(InputData), sizeof(OutputData), sizeof(InputData[0]), sizeof(InputData[1]));
   CreateCommandPool();
   PrepareCommandBuffer();
 
@@ -55,6 +55,8 @@ int main(int argc, const char** argv)
   }
 
   CopyToInputBuffer(InputData, sizeof(InputData));
+  CopyToInputBufferUni1(InputData[0], sizeof(InputData[0]));
+  CopyToInputBufferUni2(InputData[1], sizeof(InputData[1]));
 
   uint32_t time = get_time();
   generate();

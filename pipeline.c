@@ -44,7 +44,7 @@ VkShaderModule CreateComputeShader()
 
 void CreateDescriptorSetLayout()
 {
-  VkDescriptorSetLayoutBinding bindings[2];
+  VkDescriptorSetLayoutBinding bindings[4];
   memset(&bindings, 0, sizeof(bindings));
   bindings[0].binding = 0;
   bindings[0].stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
@@ -55,10 +55,19 @@ void CreateDescriptorSetLayout()
   bindings[1].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
   bindings[1].descriptorCount = 1;
 
+  bindings[2].binding = 2;
+  bindings[2].stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
+  bindings[2].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+  bindings[2].descriptorCount = 1;
+  bindings[3].binding = 3;
+  bindings[3].stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
+  bindings[3].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+  bindings[3].descriptorCount = 1;
+
   VkDescriptorSetLayoutCreateInfo createInfo;
   memset(&createInfo, 0, sizeof(createInfo));
   createInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-  createInfo.bindingCount = 2;
+  createInfo.bindingCount = 4;
   createInfo.pBindings = bindings;
 
   if (vkCreateDescriptorSetLayout(LogicalDevice, &createInfo, NULL, &DescriptorSetLayout) != VK_SUCCESS)

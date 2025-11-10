@@ -8,6 +8,7 @@
 #include <vulkan/vulkan.h>
 
 VkCommandBuffer CommandBuffer = VK_NULL_HANDLE;
+VkDescriptorSet DescriptorSet = VK_NULL_HANDLE;
 
 void PrepareCommandBuffer()
 {
@@ -36,6 +37,7 @@ void PrepareCommandBuffer()
   }
 
   vkCmdBindPipeline(CommandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, Pipeline);
+  vkCmdBindDescriptorSets(CommandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, PipelineLayout, 0, 1, &DescriptorSet, 0, NULL);
   vkCmdDispatch(CommandBuffer, 1, 1, 1);
 
   if (vkEndCommandBuffer(CommandBuffer) != VK_SUCCESS)
@@ -76,4 +78,21 @@ int Compute()
   vkDestroyFence(LogicalDevice, fence, NULL);
 
   return 0;
+}
+
+void CreateDescriptorSet()
+{
+  CreateDescriptorPool();
+
+  VkDescriptorSetAllocateInfo descriptorSetAllocInfo;
+  memset(&descriptorSetAllocInfo, 0, sizeof(descriptorSetAllocInfo));
+  descriptorSetAllocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+  descriptorSetAllocInfo.descriptorSetCount = 1;
+  descriptorSetAllocInfo.pSetLayouts = &DescriptorSetLayout;
+  descriptorSetAllocInfo.descriptorPool = DescriptorPool;
+
+  if (vkAllocateDescriptorSets(LogicalDevice, &descriptorSetAllocInfo, &DescriptorSet) != VK_SUCCESS)
+  {
+    printf("Failed to allocate the descriptor set\n");
+  }
 }

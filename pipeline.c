@@ -8,6 +8,7 @@
 
 VkPipeline Pipeline = VK_NULL_HANDLE;
 VkPipelineLayout PipelineLayout = VK_NULL_HANDLE;
+VkDescriptorSetLayout DescriptorSetLayout = VK_NULL_HANDLE;
 
 VkShaderModule CreateComputeShader()
 {
@@ -41,11 +42,41 @@ VkShaderModule CreateComputeShader()
   return handle;
 }
 
+void CreateDescriptorSetLayout()
+{
+  VkDescriptorSetLayoutBinding bindings[2];
+  memset(&bindings, 0, sizeof(bindings));
+  bindings[0].binding = 0;
+  bindings[0].stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
+  bindings[0].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+  bindings[0].descriptorCount = 1;
+  bindings[1].binding = 1;
+  bindings[1].stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
+  bindings[1].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+  bindings[1].descriptorCount = 1;
+
+  VkDescriptorSetLayoutCreateInfo createInfo;
+  memset(&createInfo, 0, sizeof(createInfo));
+  createInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+  createInfo.bindingCount = 1;
+  createInfo.pBindings = bindings;
+
+  if (vkCreateDescriptorSetLayout(LogicalDevice, &createInfo, NULL, &DescriptorSetLayout) != VK_SUCCESS)
+  {
+    printf("Failed to create a descriptor set layout\n");
+    return;
+  }
+}
+
 void CreatePipelineLayout()
 {
+  CreateDescriptorSetLayout();
+
   VkPipelineLayoutCreateInfo createLayout;
   memset(&createLayout, 0, sizeof(createLayout));
   createLayout.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+  createLayout.setLayoutCount = 1;
+  createLayout.pSetLayouts = &DescriptorSetLayout;
 
   if (vkCreatePipelineLayout(LogicalDevice, &createLayout, NULL, &PipelineLayout) != VK_SUCCESS)
   {
@@ -82,6 +113,11 @@ void DestroyPipeline()
   if (PipelineLayout != VK_NULL_HANDLE)
   {
     vkDestroyPipelineLayout(LogicalDevice, PipelineLayout, NULL);
+  }
+
+  if (DescriptorSetLayout != VK_NULL_HANDLE)
+  {
+    vkDestroyDescriptorSetLayout(LogicalDevice, DescriptorSetLayout, NULL);
   }
 
   if (Pipeline != VK_NULL_HANDLE)

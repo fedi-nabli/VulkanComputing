@@ -34,7 +34,7 @@ uint32_t get_time()
 {
   struct timespec ts;
   clock_gettime(CLOCK_REALTIME, &ts);
-  return ts.tv_sec * 1000 + ts.tv_nsec / 1000000;
+  return ts.tv_sec * 1000000 + ts.tv_nsec / 1000;
 }
 
 int main(int argc, const char** argv) 
@@ -59,7 +59,7 @@ int main(int argc, const char** argv)
   uint32_t time = get_time();
   generate();
   time = get_time() - time;
-  printf("CPU time: %u millisecnds, value = %u\n", time, OutputData[0]);
+  printf("CPU time: %u microseconds, value = %u\n", time, OutputData[0]);
 
   OutputData[0] = 0.0f;
   CopyToOutputBuffer(OutputData, sizeof(OutputData));
@@ -69,7 +69,7 @@ int main(int argc, const char** argv)
   time = get_time() - time;
 
   CopyFromOutputBuffer(OutputData, sizeof(OutputData));
-  printf("GPU time: %u millisecnds, value = %u\n", time, OutputData[0]);
+  printf("GPU time: %u microseconds, value = %u\n", time, OutputData[0]);
 
   DestroyPipeline();
   DestroyCommandPoolAndLogicalDevice();

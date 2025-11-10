@@ -35,7 +35,7 @@ uint32_t FindMemoryIndexByType(uint32_t allowedTypesMask, VkMemoryPropertyFlags 
   return 0;
 }
 
-VkBuffer CreateBufferAndMemory(uint32_t size, VkDeviceMemory* deviceMemory)
+VkBuffer CreateBufferAndMemory(uint32_t size, VkDeviceMemory* deviceMemory, VkBufferUsageFlags usage, VkMemoryPropertyFlagBits memProperties)
 {
   VkBuffer buffer;
   VkDeviceMemory memory;
@@ -45,7 +45,7 @@ VkBuffer CreateBufferAndMemory(uint32_t size, VkDeviceMemory* deviceMemory)
   bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
   bufferInfo.size = size;
   bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-  bufferInfo.usage = VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
+  bufferInfo.usage = usage;
 
   if (vkCreateBuffer(LogicalDevice, &bufferInfo, NULL, &buffer) != VK_SUCCESS)
   {
@@ -60,7 +60,7 @@ VkBuffer CreateBufferAndMemory(uint32_t size, VkDeviceMemory* deviceMemory)
   memset(&memAllocInfo, 0, sizeof(memAllocInfo));
   memAllocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
   memAllocInfo.allocationSize = memoryRequirements.size;
-  memAllocInfo.memoryTypeIndex = FindMemoryIndexByType(memoryRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_COHERENT_BIT | VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
+  memAllocInfo.memoryTypeIndex = FindMemoryIndexByType(memoryRequirements.memoryTypeBits, memProperties);
 
   if (vkAllocateMemory(LogicalDevice, &memAllocInfo, NULL, &memory) != VK_SUCCESS)
   {
@@ -80,8 +80,8 @@ VkBuffer CreateBufferAndMemory(uint32_t size, VkDeviceMemory* deviceMemory)
 
 void CreateBuffer(uint32_t inputSize, uint32_t outputSize)
 {
-  InputBuffer = CreateBufferAndMemory(inputSize, &InputBufferMemory);
-  OutputBuffer = CreateBufferAndMemory(outputSize, &OutputBufferMemory);
+  InputBuffer = CreateBufferAndMemory(inputSize, &InputBufferMemory, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+  OutputBuffer = CreateBufferAndMemory(outputSize, &OutputBufferMemory, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_COHERENT_BIT | VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
 
   VkDescriptorBufferInfo descriptorBuffers[2];
   descriptorBuffers[0].buffer = InputBuffer;
@@ -133,9 +133,60 @@ void CopyData(void* data, uint32_t size, int isWrite, VkDeviceMemory memory)
   vkUnmapMemory(LogicalDevice, memory);
 }
 
+void CopyBufferToBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, uint32_t size)
+{
+  VkCommandBuffer cmdBuffer;
+
+  VkCommandBufferAllocateInfo cmdBufAllocInfo;
+  memset(&cmdBufAllocInfo, 0, sizeof(cmdBufAllocInfo));
+  cmdBufAllocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+  cmdBufAllocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+  cmdBufAllocInfo.commandBufferCount = 1;
+  cmdBufAllocInfo.commandPool = ComputeCmdPool;
+
+  vkAllocateCommandBuffers(LogicalDevice, &cmdBufAllocInfo, &cmdBuffer);
+
+  VkCommandBufferBeginInfo cmdBufferBegin;
+  memset(&cmdBufferBegin, 0, sizeof(cmdBufferBegin));
+  cmdBufferBegin.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+  cmdBufferBegin.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+
+  vkBeginCommandBuffer(cmdBuffer, &cmdBufferBegin);
+
+  VkBufferCopy buffCopy;
+  buffCopy.srcOffset = 0;
+  buffCopy.dstOffset = 0;
+  buffCopy.size = size;
+
+  vkCmdCopyBuffer(cmdBuffer, srcBuffer, dstBuffer, 1, &buffCopy);
+  vkEndCommandBuffer(cmdBuffer);
+
+  VkSubmitInfo submitInfo;
+  memset(&submitInfo, 0, sizeof(submitInfo));
+  submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+  submitInfo.commandBufferCount = 1;
+  submitInfo.pCommandBuffers = &cmdBuffer;
+
+  vkQueueSubmit(ComputingQueue, 1, &submitInfo, VK_NULL_HANDLE);
+  vkQueueWaitIdle(ComputingQueue);
+  vkFreeCommandBuffers(LogicalDevice, ComputeCmdPool, 1, &cmdBuffer);
+}
+
+void CopyToLocalBuffer(void* data, uint32_t size, VkBuffer buffer)
+{
+  VkDeviceMemory tempMemory;
+  VkBuffer tempBuffer = CreateBufferAndMemory(size, &tempMemory, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_COHERENT_BIT | VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
+
+  CopyData(data, size, 1, tempMemory);
+  CopyBufferToBuffer(tempBuffer, buffer, size);
+  vkDestroyBuffer(LogicalDevice, tempBuffer, NULL);
+  vkFreeMemory(LogicalDevice, tempMemory, NULL);
+}
+
 void CopyToInputBuffer(void* data, uint32_t size)
 {
-  CopyData(data, size, 1, InputBufferMemory);
+  // CopyData(data, size, 1, InputBufferMemory);
+  CopyToLocalBuffer(data, size, InputBuffer);
 }
 
 void CopyFromOutputBuffer(void* data, uint32_t size)

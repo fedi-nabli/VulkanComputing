@@ -22,21 +22,40 @@ layout( binding = 3 ) uniform inputBuffer2
   uvec4 valuesIn2[2500];
 };
 
-void main()
+uint processItems(uvec4 item1, uvec4 item2)
 {
-  vec4 maxValue = vec4(0, 0, 0, 0);
-
-  for (uint j = 0; j < 2500; j++)
-  {
-    uint index = gl_LocalInvocationID.x + gl_WorkGroupID.x * 500;
-    mat4 value = outerProduct(valuesIn1[index], valuesIn2[j]);
-    maxValue = max(maxValue, value[0]);
-    maxValue = max(maxValue, value[1]);
-    maxValue = max(maxValue, value[2]);
-    maxValue = max(maxValue, value[3]);
-  }
+  mat4 value = outerProduct(item1, item2);
+  vec4 maxValue = max(value[1], value[0]);
+  maxValue = max(maxValue, value[2]);
+  maxValue = max(maxValue, value[3]);
 
   vec2 result2 = max(maxValue.rg, maxValue.ba);
   float result = max(result2[0], result2[1]);
-  atomicMax(valuesOut[0], uint(result)); 
+  return uint(result);
+}
+
+shared uint sharedResults[4];
+
+void main()
+{
+  uint indexToSharedResults = gl_LocalInvocationID.x & 3;
+  sharedResults[indexToSharedResults] = 0;
+
+  memoryBarrierShared();
+
+  uint index = gl_LocalInvocationID.x + gl_WorkGroupID.x * 500;
+  uint result = processItems(valuesIn1[index], valuesIn2[gl_WorkGroupID.y]);
+
+  atomicMax(sharedResults[indexToSharedResults], result);
+
+  barrier();
+
+  if (gl_LocalInvocationID.x == 0)
+  {
+    uint maxResult = max(sharedResults[0], sharedResults[1]);
+    maxResult = max(maxResult, sharedResults[2]);
+    maxResult = max(maxResult, sharedResults[3]);
+    
+    atomicMax(valuesOut[0], maxResult);
+  }
 }
